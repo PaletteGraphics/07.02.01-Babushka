@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="da">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="https://use.typekit.net/aao5jpf.css" />
+    <title>Babushka</title>
+    <style>
+      img {
+        max-width: 100%;
+        height: 250px;
+        object-fit: cover;
+        border-radius: 5px;
+      }
+
+      body {
+        background-color: #ff6b6b;
+        margin-left: 5%;
+        margin-right: 5%;
+      }
+
+      button {
+        background: none;
+        color: inherit;
+        border: none;
+        cursor: pointer;
+        outline: inherit;
+        margin-right: 15px;
+        transition-duration: 0.4s;
+        font-size: 1.2rem;
+        font-family: century-gothic, sans-serif;
+        font-weight: 400;
+        font-style: normal;
+      }
+
+      p {
+        font-family: century-gothic, sans-serif;
+        font-weight: 400;
+        font-style: normal;
+      }
+
+      button:hover {
+        color: bisque;
+      }
+
+      nav {
+        margin-top: 3%;
+        text-align: center;
+      }
+
+      .valgt {
+        background-color: #ff6b6b;
+      }
+
+      section {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 10px;
+      }
+
+      article {
+        display: grid;
+        margin-bottom: 5px;
+        padding: 10px;
+        margin-top: 5px;
+        box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
+        transition: 0.3s;
+        border-radius: 5px;
+        background-color: #ffffff;
+      }
+
+      article:hover {
+        box-shadow: 0 10px 20px 0 rgba(0, 0, 0, 0.2);
+        cursor: pointer;
+      }
+
+      a {
+        text-decoration: none;
+        color: black;
+      }
+
+      .main-nav {
+        display: flex;
+      }
+
+      .logo {
+        font-family: decoy, serif;
+        font-weight: 500;
+        font-style: normal;
+        font-size: 1.2rem;
+        margin-right: auto;
+      }
+
+      a:hover {
+        color: bisque;
+        transition-duration: 0.4s;
+      }
+      h1 {
+        font-family: century-gothic, sans-serif;
+        font-weight: 700;
+        font-style: normal;
+      }
+
+      h2 {
+        font-family: century-gothic, sans-serif;
+        font-weight: 600;
+        font-style: normal;
+      }
+
+      #model {
+        display: none;
+        align-items: center;
+        width: 100vw;
+        height: 100vh;
+        left: 0;
+        top: 0;
+        position: fixed;
+        background-color: rgba(0, 0, 0, 0.664);
+      }
+
+      #model article {
+        width: 25vw;
+        display: block;
+        /* flex-flow: wrap; */
+        margin: 9.5rem auto;
+        padding: 12px;
+        background-color: white;
+      }
+    </style>
+  </head>
+  <header>
+    <nav>
+      <div class="main-nav">
+        <button class="logo"><a href="index.html"> Babushka</a></button>
+        <button data-kategori="alle" class="valgt">Alle</button>
+        <button data-kategori="forretter">Forretter</button>
+        <button data-kategori="hovedretter">Hovedretter</button>
+        <button data-kategori="desserter">Desserter</button>
+        <button data-kategori="sideorders">Sides</button>
+        <button data-kategori="drikkevarer">Drikkevarer</button>
+      </div>
+    </nav>
+  </header>
+  <body>
+    <h1>Alle</h1>
+    <aside id="model">
+      <article>
+        <img src="" alt="" class="billede" />
+        <h2 class="navn"></h2>
+        <p class="oprindelsesregion"></p>
+        <p class="langbeskrivelse"></p>
+        <p class="pris"></p>
+      </article>
+    </aside>
+    <section class="liste"></section>
+    <template>
+      <article>
+        <img src="" alt="" class="billede" />
+        <h2 class="navn"></h2>
+        <p class="kortbeskrivelse"></p>
+        <p class="pris"></p>
+      </article>
+    </template>
+    <script>
+      const url = "https://babushka-dd8a.restdb.io/rest/menu";
+      const template = document.querySelector("template").content;
+      const popup = document.querySelector("#model");
+      const header = document.querySelector("body h1");
+
+      const options = {
+        headers: {
+          "x-apikey": "600ec2fb1346a1524ff12de4",
+        },
+      };
+      document.addEventListener("DOMContentLoaded", start);
+      let data;
+      let filter = "alle";
+
+      function start() {
+        const filterKnapper = document.querySelectorAll("nav button");
+        filterKnapper.forEach((knap) =>
+          knap.addEventListener("click", filtrerRetter)
+        );
+        hentData();
+      }
+
+      function filtrerRetter() {
+        filter = this.dataset.kategori;
+        document.querySelector(".valgt").classList.remove("valgt");
+        this.classList.add("valgt");
+        vis(data);
+        header.textContent = this.textContent;
+      }
+
+      async function hentData() {
+        const respons = await fetch(url, options);
+        const json = await respons.json();
+        data = json;
+        vis(data);
+      }
+
+      function vis(json) {
+        const container = document.querySelector("section");
+        container.textContent = "";
+
+        json.forEach((ret) => {
+          if (filter == ret.kategori || filter == "alle") {
+            const klon = template.cloneNode(true);
+            klon.querySelector("h2").textContent = ret.navn;
+            klon.querySelector("img").src =
+              "medium/" + ret.billednavn + "-md.jpg";
+            klon.querySelector(".kortbeskrivelse").textContent =
+              ret.kortbeskrivelse;
+            klon.querySelector(".pris").textContent =
+              "Pris: " + ret.pris + ",-";
+            klon
+              .querySelector("article")
+              .addEventListener("click", () => visDetaljer(ret));
+            container.appendChild(klon);
+          }
+        });
+        function visDetaljer(ret) {
+          console.log(ret);
+          popup.querySelector("h2").textContent = ret.navn;
+          popup.querySelector("img").src =
+            "medium/" + ret.billednavn + "-md.jpg";
+          popup.querySelector(".langbeskrivelse").textContent =
+            ret.langbeskrivelse;
+          popup.querySelector(".pris").textContent = "Pris: " + ret.pris + ",-";
+          popup.querySelector(".oprindelsesregion").textContent =
+            "Oprindelse: " + ret.oprindelsesregion;
+          popup.style.display = "block";
+        }
+        popup.addEventListener("click", () => (popup.style.display = "none"));
+      }
+    </script>
+  </body>
+</html>
